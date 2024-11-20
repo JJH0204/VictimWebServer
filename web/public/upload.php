@@ -221,18 +221,17 @@ requireLogin();
                 submitBtn.disabled = true;
                 submitBtn.textContent = '업로드 중...';
 
-                console.log('업로드 요청 시작...');
-                
-                const response = await fetch('/service/includes/upload_process.php', {
+                // 현재 페이지의 경로를 기준으로 상대 경로 설정
+                const uploadUrl = '../includes/upload_process.php';
+                console.log('업로드 URL:', uploadUrl);
+                console.log('현재 페이지 위치:', window.location.href);
+
+                const response = await fetch(uploadUrl, {
                     method: 'POST',
                     body: formData
-                });
-
-                console.log('서버 응답 상태:', {
-                    status: response.status,
-                    statusText: response.statusText,
-                    ok: response.ok,
-                    headers: Object.fromEntries(response.headers.entries())
+                }).catch(error => {
+                    console.error('Fetch 요청 실패:', error);
+                    throw new Error(`네트워크 요청 실패: ${error.message}`);
                 });
 
                 const text = await response.text();
@@ -241,20 +240,8 @@ requireLogin();
                 let data;
                 try {
                     data = JSON.parse(text);
-                    console.log('파싱된 응답 데이터:', data);
                 } catch (e) {
-                    console.error('JSON 파싱 에러:', e);
-                    console.log('파싱 실패한 원본 텍스트:', text);
                     throw new Error(`서버 응답 파싱 실패: ${text}`);
-                }
-
-                if (!response.ok) {
-                    console.error('HTTP 에러:', {
-                        status: response.status,
-                        statusText: response.statusText,
-                        data: data
-                    });
-                    throw new Error(`HTTP 에러! status: ${response.status}`);
                 }
 
                 let logText = '== 업로드 결과 ==\n';

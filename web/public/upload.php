@@ -161,7 +161,7 @@ requireLogin();
 
             <form id="uploadForm" action="/service/includes/upload_process.php" method="post" enctype="multipart/form-data">
                 <div class="file-input-wrapper">
-                    <input type="file" name="fileToUpload" id="fileToUpload">
+                    <input type="file" name="fileToUpload" id="fileToUpload" required>
                 </div>
                 <button type="submit" class="submit-btn" name="submit">파일 업로드</button>
             </form>
@@ -176,42 +176,44 @@ requireLogin();
         document.getElementById('uploadForm').addEventListener('submit', function(e) {
             e.preventDefault();
             
+            const fileInput = document.getElementById('fileToUpload');
             const submitBtn = document.querySelector('.submit-btn');
             const resultDiv = document.getElementById('uploadResult');
             const resultPre = resultDiv.querySelector('pre');
             
+            // 파일 선택 여부 확인
+            if (!fileInput.files || fileInput.files.length === 0) {
+                resultPre.textContent = '파일을 선택해주세요.';
+                resultDiv.style.display = 'block';
+                return;
+            }
+
             submitBtn.disabled = true;
             submitBtn.textContent = '업로드 중...';
             
             const formData = new FormData(this);
             
-            console.log('업로드 시작:', {
-                url: '/service/includes/upload_process.php',
-                formData: Object.fromEntries(formData)
-            });
+            // FormData 내용 확인
+            console.log('선택된 파일:', fileInput.files[0]);
+            for (let pair of formData.entries()) {
+                console.log(pair[0] + ': ' + pair[1]);
+            }
 
             fetch('/service/includes/upload_process.php', {
                 method: 'POST',
                 body: formData
             })
             .then(async response => {
-                const text = await response.text(); // 응답 텍스트 먼저 받기
-                console.log('서버 응답 텍스트:', text);
+                const text = await response.text();
+                console.log('서버 응답:', text);
                 
                 try {
-                    const data = JSON.parse(text); // JSON 파싱 시도
-                    if (!response.ok) {
-                        throw new Error(`HTTP error! status: ${response.status}`);
-                    }
-                    return data;
+                    return JSON.parse(text);
                 } catch (e) {
-                    console.error('JSON 파싱 에러:', e);
-                    throw new Error(`서버 응답 파싱 실패: ${text}`);
+                    throw new Error('서버 응답 파싱 실패: ' + text);
                 }
             })
             .then(data => {
-                console.log('처리된 응답:', data);
-                
                 let logText = '== 업로드 결과 ==\n';
                 logText += `상태: ${data.success ? '성공' : '실패'}\n`;
                 logText += `메시지: ${data.message}\n`;
@@ -241,14 +243,22 @@ requireLogin();
             });
         });
 
+        // 파일 선택 시 이벤트
         document.getElementById('fileToUpload').addEventListener('change', function(e) {
-            const fileName = e.target.files[0]?.name;
-            if (fileName) {
-                console.log('선택된 파일:', fileName);
-                document.querySelector('.submit-btn').textContent = `'${fileName}' 업로드`;
+            const submitBtn = document.querySelector('.submit-btn');
+            const resultDiv = document.getElementById('uploadResult');
+            
+            if (this.files && this.files[0]) {
+                const file = this.files[0];
+                console.log('선택된 파일:', {
+                    name: file.name,
+                    size: file.size,
+                    type: file.type
+                });
+                submitBtn.textContent = `'${file.name}' 업로드`;
+                resultDiv.style.display = 'none'; // 이전 결과 숨기기
             } else {
-                console.log('파일 선택 취소됨');
-                document.querySelector('.submit-btn').textContent = '파일 업로드';
+                submitBtn.textContent = '파일 업로드';
             }
         });
     </script>

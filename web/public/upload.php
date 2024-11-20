@@ -191,16 +191,35 @@ requireLogin();
             const formData = new FormData();
             formData.append('fileToUpload', fileInput.files[0]);
 
+            // FormData 내용 확인
+            console.log('=== FormData 디버깅 ===');
+            console.log('선택된 파일:', fileInput.files[0]);
+            
+            // FormData 내용 순회하며 확인
+            console.log('FormData 내용:');
+            for (let [key, value] of formData.entries()) {
+                console.log(`${key}:`, value instanceof File ? {
+                    name: value.name,
+                    size: value.size,
+                    type: value.type,
+                    lastModified: new Date(value.lastModified)
+                } : value);
+            }
+
+            // 파일 객체 상세 정보
+            if (fileInput.files[0]) {
+                const file = fileInput.files[0];
+                console.log('파일 상세 정보:', {
+                    name: file.name,
+                    size: `${(file.size / 1024).toFixed(2)}KB`,
+                    type: file.type,
+                    lastModified: new Date(file.lastModified)
+                });
+            }
+
             try {
                 submitBtn.disabled = true;
                 submitBtn.textContent = '업로드 중...';
-
-                // FormData 내용 확인
-                console.log('업로드 파일 정보:', {
-                    name: fileInput.files[0].name,
-                    size: fileInput.files[0].size,
-                    type: fileInput.files[0].type
-                });
 
                 const response = await fetch('/service/includes/upload_process.php', {
                     method: 'POST',

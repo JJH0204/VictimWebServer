@@ -1,3 +1,7 @@
+<?php
+require_once '../includes/auth.php';
+requireLogin();
+?>
 <!DOCTYPE html>
 <html lang="ko">
 <head>
@@ -62,6 +66,7 @@
             border-radius: 4px;
             margin-bottom: 1.5rem;
             text-align: center;
+            border: 1px solid #ffeeba;
         }
 
         #uploadForm {
@@ -74,14 +79,16 @@
         .file-input-wrapper {
             width: 100%;
             max-width: 400px;
+            position: relative;
         }
 
         #fileToUpload {
             width: 100%;
-            padding: 0.5rem;
+            padding: 1rem;
             border: 2px dashed #2c3e50;
             border-radius: 4px;
             cursor: pointer;
+            background-color: #f8f9fa;
         }
 
         .submit-btn {
@@ -92,33 +99,52 @@
             border-radius: 4px;
             cursor: pointer;
             font-size: 1rem;
-            transition: background-color 0.3s;
+            transition: all 0.3s ease;
+            min-width: 200px;
         }
 
         .submit-btn:hover {
             background-color: #2980b9;
+            transform: translateY(-2px);
         }
 
-        .info-section {
+        .submit-btn:disabled {
+            background-color: #95a5a6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .upload-result {
             margin-top: 2rem;
             padding: 1rem;
-            background-color: #e8f4f8;
             border-radius: 4px;
+            background-color: #f8f9fa;
+            border: 1px solid #dee2e6;
         }
 
-        .info-section h3 {
-            color: #2c3e50;
-            margin-bottom: 0.5rem;
+        .upload-result pre {
+            margin: 0;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+            font-family: monospace;
+            font-size: 0.9rem;
+            line-height: 1.4;
+            color: #495057;
         }
 
-        .info-section ul {
-            list-style-type: none;
-            padding-left: 1rem;
-        }
+        @media (max-width: 768px) {
+            .container {
+                padding: 10px;
+            }
 
-        .info-section li {
-            margin-bottom: 0.5rem;
-            color: #666;
+            .upload-section {
+                padding: 1rem;
+            }
+
+            .submit-btn {
+                width: 100%;
+                max-width: 400px;
+            }
         }
     </style>
 </head>
@@ -132,17 +158,18 @@
     <div class="container">
         <div class="upload-section">
             <h2>파일 업로드</h2>
+
             <form id="uploadForm" action="../includes/upload.php" method="post" enctype="multipart/form-data">
                 <div class="file-input-wrapper">
                     <input type="file" name="fileToUpload" id="fileToUpload">
                 </div>
                 <button type="submit" class="submit-btn" name="submit">파일 업로드</button>
             </form>
-        </div>
-    </div>
 
-    <div id="uploadResult" class="upload-result" style="margin-top: 1rem; display: none;">
-        <pre style="background: #f8f9fa; padding: 1rem; border-radius: 4px; overflow-x: auto;"></pre>
+            <div id="uploadResult" class="upload-result" style="margin-top: 1rem; display: none;">
+                <pre style="background: #f8f9fa; padding: 1rem; border-radius: 4px; overflow-x: auto;"></pre>
+            </div>
+        </div>
     </div>
 
     <script>
@@ -158,17 +185,19 @@
             
             const formData = new FormData(this);
             
-            console.log('파일 업로드 시작...');
-            
             fetch('../includes/upload.php', {
                 method: 'POST',
                 body: formData
             })
-            .then(response => response.json())
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Network response was not ok');
+                }
+                return response.json();
+            })
             .then(data => {
                 console.log('서버 응답:', data);
                 
-                // 로그 및 결과 표시
                 let logText = '== 업로드 결과 ==\n';
                 logText += `상태: ${data.success ? '성공' : '실패'}\n`;
                 logText += `메시지: ${data.message}\n`;
@@ -186,22 +215,18 @@
                 
                 resultPre.textContent = logText;
                 resultDiv.style.display = 'block';
-                
-                // 버튼 상태 복구
-                submitBtn.disabled = false;
-                submitBtn.textContent = '파일 업로드';
             })
             .catch(error => {
                 console.error('업로드 오류:', error);
                 resultPre.textContent = `오류 발생: ${error.message}`;
                 resultDiv.style.display = 'block';
-                
+            })
+            .finally(() => {
                 submitBtn.disabled = false;
                 submitBtn.textContent = '파일 업로드';
             });
         });
 
-        // 파일 선택 시 피드백
         document.getElementById('fileToUpload').addEventListener('change', function(e) {
             const fileName = e.target.files[0]?.name;
             if (fileName) {

@@ -21,7 +21,7 @@ document.getElementById('loginForm').addEventListener('submit', async (event) =>
         if (data.success) {
             showMessage(data.message, false);
             setTimeout(() => {
-                window.location.href = './upload.html';
+                window.location.href = './upload.php';
             }, 1000);
         } else {
             showMessage(data.message, true);

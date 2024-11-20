@@ -141,22 +141,76 @@
         </div>
     </div>
 
+    <div id="uploadResult" class="upload-result" style="margin-top: 1rem; display: none;">
+        <pre style="background: #f8f9fa; padding: 1rem; border-radius: 4px; overflow-x: auto;"></pre>
+    </div>
+
     <script>
+        document.getElementById('uploadForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const submitBtn = document.querySelector('.submit-btn');
+            const resultDiv = document.getElementById('uploadResult');
+            const resultPre = resultDiv.querySelector('pre');
+            
+            submitBtn.disabled = true;
+            submitBtn.textContent = '업로드 중...';
+            
+            const formData = new FormData(this);
+            
+            console.log('파일 업로드 시작...');
+            
+            fetch('../includes/upload.php', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                console.log('서버 응답:', data);
+                
+                // 로그 및 결과 표시
+                let logText = '== 업로드 결과 ==\n';
+                logText += `상태: ${data.success ? '성공' : '실패'}\n`;
+                logText += `메시지: ${data.message}\n`;
+                
+                if (data.logs && data.logs.length > 0) {
+                    logText += '\n== 상세 로그 ==\n';
+                    data.logs.forEach(log => {
+                        logText += `${log}\n`;
+                    });
+                }
+                
+                if (data.filepath) {
+                    logText += `\n저장 위치: ${data.filepath}`;
+                }
+                
+                resultPre.textContent = logText;
+                resultDiv.style.display = 'block';
+                
+                // 버튼 상태 복구
+                submitBtn.disabled = false;
+                submitBtn.textContent = '파일 업로드';
+            })
+            .catch(error => {
+                console.error('업로드 오류:', error);
+                resultPre.textContent = `오류 발생: ${error.message}`;
+                resultDiv.style.display = 'block';
+                
+                submitBtn.disabled = false;
+                submitBtn.textContent = '파일 업로드';
+            });
+        });
+
         // 파일 선택 시 피드백
         document.getElementById('fileToUpload').addEventListener('change', function(e) {
             const fileName = e.target.files[0]?.name;
             if (fileName) {
+                console.log('선택된 파일:', fileName);
                 document.querySelector('.submit-btn').textContent = `'${fileName}' 업로드`;
             } else {
+                console.log('파일 선택 취소됨');
                 document.querySelector('.submit-btn').textContent = '파일 업로드';
             }
-        });
-
-        // 폼 제출 시 로딩 상태 표시
-        document.getElementById('uploadForm').addEventListener('submit', function() {
-            const submitBtn = document.querySelector('.submit-btn');
-            submitBtn.disabled = true;
-            submitBtn.textContent = '업로드 중...';
         });
     </script>
 </body>

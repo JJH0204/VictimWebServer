@@ -3,40 +3,60 @@ require_once 'auth.php';
 requireLogin();
 
 // 파일 업로드 디렉토리 설정
-define('UPLOAD_DIR', '/var/www/share/');
+define('UPLOAD_DIR', '/var/www/html/share/');
 
 // 기본 설정
 $max_size = 5 * 1024 * 1024; // 5MB
 
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
     try {
+        $response = [
+            'success' => false,
+            'message' => '',
+            'logs' => [],
+            'filepath' => ''
+        ];
+
         if (!isset($_FILES["fileToUpload"])) {
             throw new Exception("파일이 선택되지 않았습니다.");
         }
 
         $file = $_FILES["fileToUpload"];
-        
-        // 파일 크기만 검사 (취약점 1: 파일 타입 검사 없음)
-        if ($file["size"] > $max_size) {
-            throw new Exception("파일 크기가 너무 큽니다.");
-        }
-
-        // 취약점 2: 원본 파일명 그대로 사용
-        $target_file = UPLOAD_DIR . basename($file["name"]);
-
-        // 취약점 3: 파일 이동만 수행
-        if (!move_uploaded_file($file["tmp_name"], $target_file)) {
-            throw new Exception("파일 업로드 실패");
-        }
-
-        echo json_encode([
-            "success" => true, 
-            "message" => "파일이 업로드되었습니다.",
-            "filepath" => $target_file // 취약점 4: 파일 경로 노출
+        $response['logs'][] = "파일 정보: " . json_encode([
+            'name' => $file['name'],
+            'type' => $file['type'],
+            'size' => $file['size'] . " bytes",
+            'tmp_name' => $file['tmp_name']
         ]);
+        
+        // 파일 크기 검사
+        if ($file["size"] > $max_size) {
+            throw new Exception("파일 크기가 너무 큽니다. (제한: " . ($max_size/1024/1024) . "MB)");
+        }
+        $response['logs'][] = "파일 크기 검사 통과: " . number_format($file["size"]/1024/1024, 2) . "MB";
+
+        // 원본 파일명 사용
+        $target_file = UPLOAD_DIR . basename($file["name"]);
+        $response['logs'][] = "저장 경로: " . $target_file;
+
+        // 파일 이동
+        if (!move_uploaded_file($file["tmp_name"], $target_file)) {
+            throw new Exception("파일 업로드 실패 - 권한을 확인하세요.");
+        }
+        $response['logs'][] = "파일 이동 완료";
+
+        $response['success'] = true;
+        $response['message'] = "파일이 성공적으로 업로드되었습니다.";
+        $response['filepath'] = $target_file;
+
+        header('Content-Type: application/json');
+        echo json_encode($response);
+        
     } catch (Exception $e) {
         http_response_code(400);
-        echo json_encode(["success" => false, "message" => $e->getMessage()]);
+        $response['success'] = false;
+        $response['message'] = $e->getMessage();
+        echo json_encode($response);
     }
 }
 ?> 

@@ -1,9 +1,13 @@
 <?php
+ob_clean();
 require_once __DIR__ . '/config.php';
 session_start();
 
 try {
-    header('Content-Type: application/json');
+    header('Content-Type: application/json; charset=utf-8');
+    header("Cache-Control: no-store, no-cache, must-revalidate, max-age=0");
+    header("Cache-Control: post-check=0, pre-check=0", false);
+    header("Pragma: no-cache");
     
     $conn = getDBConnection();
     $debug_log = ["로그인 시도 - 시작"];
@@ -44,21 +48,23 @@ try {
             "success" => true,
             "message" => "로그인 성공!",
             "debug" => $debug_log
-        ]);
+        ], JSON_UNESCAPED_UNICODE);
     } else {
         $debug_log[] = "로그인 실패 - 일치하는 사용자 없음";
         echo json_encode([
             "success" => false,
             "message" => "아이디 또는 비밀번호가 잘못되었습니다.",
             "debug" => $debug_log
-        ]);
+        ], JSON_UNESCAPED_UNICODE);
     }
 } catch(Exception $e) {
     $debug_log[] = "로그인 오류: " . $e->getMessage();
-    echo json_encode([
+    $response = [
         "success" => false,
         "message" => "로그인 처리 중 오류가 발생했습니다: " . $e->getMessage(),
         "debug" => $debug_log
-    ]);
+    ];
+    echo json_encode($response, JSON_UNESCAPED_UNICODE);
 }
+exit();
 ?> 

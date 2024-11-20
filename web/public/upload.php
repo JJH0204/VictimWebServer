@@ -191,39 +191,48 @@ requireLogin();
             const formData = new FormData();
             formData.append('fileToUpload', fileInput.files[0]);
 
-            // FormData 내용 확인
-            console.log('=== FormData 디버깅 ===');
-            console.log('선택된 파일:', fileInput.files[0]);
+            // // FormData 내용 확인
+            // console.log('=== FormData 디버깅 ===');
+            // console.log('선택된 파일:', fileInput.files[0]);
             
-            // FormData 내용 순회하며 확인
-            console.log('FormData 내용:');
-            for (let [key, value] of formData.entries()) {
-                console.log(`${key}:`, value instanceof File ? {
-                    name: value.name,
-                    size: value.size,
-                    type: value.type,
-                    lastModified: new Date(value.lastModified)
-                } : value);
-            }
+            // // FormData 내용 순회하며 확인
+            // console.log('FormData 내용:');
+            // for (let [key, value] of formData.entries()) {
+            //     console.log(`${key}:`, value instanceof File ? {
+            //         name: value.name,
+            //         size: value.size,
+            //         type: value.type,
+            //         lastModified: new Date(value.lastModified)
+            //     } : value);
+            // }
 
-            // 파일 객체 상세 정보
-            if (fileInput.files[0]) {
-                const file = fileInput.files[0];
-                console.log('파일 상세 정보:', {
-                    name: file.name,
-                    size: `${(file.size / 1024).toFixed(2)}KB`,
-                    type: file.type,
-                    lastModified: new Date(file.lastModified)
-                });
-            }
+            // // 파일 객체 상세 정보
+            // if (fileInput.files[0]) {
+            //     const file = fileInput.files[0];
+            //     console.log('파일 상세 정보:', {
+            //         name: file.name,
+            //         size: `${(file.size / 1024).toFixed(2)}KB`,
+            //         type: file.type,
+            //         lastModified: new Date(file.lastModified)
+            //     });
+            // }
 
             try {
                 submitBtn.disabled = true;
                 submitBtn.textContent = '업로드 중...';
 
+                console.log('업로드 요청 시작...');
+                
                 const response = await fetch('/service/includes/upload_process.php', {
                     method: 'POST',
                     body: formData
+                });
+
+                console.log('서버 응답 상태:', {
+                    status: response.status,
+                    statusText: response.statusText,
+                    ok: response.ok,
+                    headers: Object.fromEntries(response.headers.entries())
                 });
 
                 const text = await response.text();
@@ -232,8 +241,20 @@ requireLogin();
                 let data;
                 try {
                     data = JSON.parse(text);
+                    console.log('파싱된 응답 데이터:', data);
                 } catch (e) {
+                    console.error('JSON 파싱 에러:', e);
+                    console.log('파싱 실패한 원본 텍스트:', text);
                     throw new Error(`서버 응답 파싱 실패: ${text}`);
+                }
+
+                if (!response.ok) {
+                    console.error('HTTP 에러:', {
+                        status: response.status,
+                        statusText: response.statusText,
+                        data: data
+                    });
+                    throw new Error(`HTTP 에러! status: ${response.status}`);
                 }
 
                 let logText = '== 업로드 결과 ==\n';

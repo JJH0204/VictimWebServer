@@ -11,6 +11,10 @@ define('UPLOAD_DIR', __DIR__ . '/../../share/');
 // 기본 설정
 $max_size = 5 * 1024 * 1024; // 5MB
 
+// 디버깅을 위한 에러 로깅 활성화
+ini_set('display_errors', 1);
+error_reporting(E_ALL);
+
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
     try {
         // 이전 출력 버퍼 제거
@@ -79,6 +83,14 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         // 파일 권한 설정
         chmod($target_file, 0644);
         $response['logs'][] = "파일 권한 설정 완료";
+
+        // 업로드 디렉토리 권한 확인
+        $response['logs'][] = "업로드 디렉토리 권한: " . substr(sprintf('%o', fileperms(UPLOAD_DIR)), -4);
+        $response['logs'][] = "PHP 프로세스 사용자: " . exec('whoami');
+
+        // 파일 업로드 제한 확인
+        $response['logs'][] = "upload_max_filesize: " . ini_get('upload_max_filesize');
+        $response['logs'][] = "post_max_size: " . ini_get('post_max_size');
 
         // 성공 응답
         $response['success'] = true;

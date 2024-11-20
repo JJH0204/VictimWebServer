@@ -159,7 +159,7 @@ requireLogin();
         <div class="upload-section">
             <h2>파일 업로드</h2>
 
-            <form id="uploadForm" action="../includes/upload_process.php" method="post" enctype="multipart/form-data">
+            <form id="uploadForm" action="/service/includes/upload_process.php" method="post" enctype="multipart/form-data">
                 <div class="file-input-wrapper">
                     <input type="file" name="fileToUpload" id="fileToUpload">
                 </div>
@@ -185,7 +185,7 @@ requireLogin();
             
             const formData = new FormData(this);
             
-            fetch('../includes/upload_process.php', {
+            fetch('/service/includes/upload_process.php', {
                 method: 'POST',
                 body: formData
             })

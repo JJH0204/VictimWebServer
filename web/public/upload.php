@@ -185,18 +185,32 @@ requireLogin();
             
             const formData = new FormData(this);
             
+            console.log('업로드 시작:', {
+                url: '/service/includes/upload_process.php',
+                formData: Object.fromEntries(formData)
+            });
+
             fetch('/service/includes/upload_process.php', {
                 method: 'POST',
                 body: formData
             })
-            .then(response => {
-                if (!response.ok) {
-                    throw new Error('Network response was not ok');
+            .then(async response => {
+                const text = await response.text(); // 응답 텍스트 먼저 받기
+                console.log('서버 응답 텍스트:', text);
+                
+                try {
+                    const data = JSON.parse(text); // JSON 파싱 시도
+                    if (!response.ok) {
+                        throw new Error(`HTTP error! status: ${response.status}`);
+                    }
+                    return data;
+                } catch (e) {
+                    console.error('JSON 파싱 에러:', e);
+                    throw new Error(`서버 응답 파싱 실패: ${text}`);
                 }
-                return response.json();
             })
             .then(data => {
-                console.log('서버 응답:', data);
+                console.log('처리된 응답:', data);
                 
                 let logText = '== 업로드 결과 ==\n';
                 logText += `상태: ${data.success ? '성공' : '실패'}\n`;
@@ -217,8 +231,8 @@ requireLogin();
                 resultDiv.style.display = 'block';
             })
             .catch(error => {
-                console.error('업로드 오류:', error);
-                resultPre.textContent = `오류 발생: ${error.message}`;
+                console.error('업로드 에러:', error);
+                resultPre.textContent = `업로드 실패: ${error.message}`;
                 resultDiv.style.display = 'block';
             })
             .finally(() => {

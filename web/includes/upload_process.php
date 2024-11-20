@@ -1,6 +1,21 @@
 <?php
+// 디버깅을 위한 에러 로깅 활성화
+ini_set('display_errors', 1);
+error_reporting(E_ALL);
+
+// 요청 정보 로깅
+error_log("Request Method: " . $_SERVER['REQUEST_METHOD']);
+error_log("Files: " . print_r($_FILES, true));
+error_log("Post: " . print_r($_POST, true));
+
 // 모든 출력 버퍼링 시작
 ob_start();
+
+// auth.php 파일 존재 여부 확인
+if (!file_exists('auth.php')) {
+    error_log("auth.php file not found in: " . __DIR__);
+    throw new Exception("인증 파일을 찾을 수 없습니다.");
+}
 
 require_once 'auth.php';
 requireLogin();
@@ -10,10 +25,6 @@ define('UPLOAD_DIR', '/var/www/html/service/share/');
 
 // 기본 설정 (PHP 설정에 맞춤)
 $max_size = 2 * 1024 * 1024; // 2MB로 수정
-
-// 디버깅을 위한 에러 로깅 활성화
-ini_set('display_errors', 1);
-error_reporting(E_ALL);
 
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
     try {

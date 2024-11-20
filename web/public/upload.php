@@ -159,11 +159,11 @@ requireLogin();
         <div class="upload-section">
             <h2>파일 업로드</h2>
 
-            <form id="uploadForm" action="/service/includes/upload_process.php" method="post" enctype="multipart/form-data">
+            <form id="uploadForm" enctype="multipart/form-data">
                 <div class="file-input-wrapper">
                     <input type="file" name="fileToUpload" id="fileToUpload" required>
                 </div>
-                <button type="submit" class="submit-btn" name="submit">파일 업로드</button>
+                <button type="submit" class="submit-btn">파일 업로드</button>
             </form>
 
             <div id="uploadResult" class="upload-result" style="display: none;">
@@ -173,7 +173,7 @@ requireLogin();
     </div>
 
     <script>
-        document.getElementById('uploadForm').addEventListener('submit', function(e) {
+        document.getElementById('uploadForm').addEventListener('submit', async function(e) {
             e.preventDefault();
             
             const fileInput = document.getElementById('fileToUpload');
@@ -181,39 +181,42 @@ requireLogin();
             const resultDiv = document.getElementById('uploadResult');
             const resultPre = resultDiv.querySelector('pre');
             
-            // 파일 선택 여부 확인
+            // 파일 선택 확인
             if (!fileInput.files || fileInput.files.length === 0) {
-                resultPre.textContent = '파일을 선택해주세요.';
-                resultDiv.style.display = 'block';
+                alert('파일을 선택해주세요.');
                 return;
             }
 
-            submitBtn.disabled = true;
-            submitBtn.textContent = '업로드 중...';
-            
-            const formData = new FormData(this);
-            
-            // FormData 내용 확인
-            console.log('선택된 파일:', fileInput.files[0]);
-            for (let pair of formData.entries()) {
-                console.log(pair[0] + ': ' + pair[1]);
-            }
+            // FormData 생성 및 파일 추가
+            const formData = new FormData();
+            formData.append('fileToUpload', fileInput.files[0]);
 
-            fetch('/service/includes/upload_process.php', {
-                method: 'POST',
-                body: formData
-            })
-            .then(async response => {
+            try {
+                submitBtn.disabled = true;
+                submitBtn.textContent = '업로드 중...';
+
+                // FormData 내용 확인
+                console.log('업로드 파일 정보:', {
+                    name: fileInput.files[0].name,
+                    size: fileInput.files[0].size,
+                    type: fileInput.files[0].type
+                });
+
+                const response = await fetch('/service/includes/upload_process.php', {
+                    method: 'POST',
+                    body: formData
+                });
+
                 const text = await response.text();
-                console.log('서버 응답:', text);
-                
+                console.log('서버 응답 텍스트:', text);
+
+                let data;
                 try {
-                    return JSON.parse(text);
+                    data = JSON.parse(text);
                 } catch (e) {
-                    throw new Error('서버 응답 파싱 실패: ' + text);
+                    throw new Error(`서버 응답 파싱 실패: ${text}`);
                 }
-            })
-            .then(data => {
+
                 let logText = '== 업로드 결과 ==\n';
                 logText += `상태: ${data.success ? '성공' : '실패'}\n`;
                 logText += `메시지: ${data.message}\n`;
@@ -225,25 +228,20 @@ requireLogin();
                     });
                 }
                 
-                if (data.filepath) {
-                    logText += `\n저장 위치: ${data.filepath}`;
-                }
-                
                 resultPre.textContent = logText;
                 resultDiv.style.display = 'block';
-            })
-            .catch(error => {
+
+            } catch (error) {
                 console.error('업로드 에러:', error);
                 resultPre.textContent = `업로드 실패: ${error.message}`;
                 resultDiv.style.display = 'block';
-            })
-            .finally(() => {
+            } finally {
                 submitBtn.disabled = false;
                 submitBtn.textContent = '파일 업로드';
-            });
+            }
         });
 
-        // 파일 선택 시 이벤트
+        // 파일 선택 이벤트
         document.getElementById('fileToUpload').addEventListener('change', function(e) {
             const submitBtn = document.querySelector('.submit-btn');
             const resultDiv = document.getElementById('uploadResult');

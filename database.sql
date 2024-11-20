@@ -7,4 +7,4 @@ CREATE TABLE users (
     password VARCHAR(50)
 );
 
-INSERT INTO users (username, password) VALUES ('admin', 'admin123'); 
+INSERT INTO users (username, password) VALUES ('admin', 'RWbevoLknYYWcK6tx5Zg'); 

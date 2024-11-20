@@ -1,4 +1,13 @@
 <?php
+$config_path = __DIR__ . '/config.php';
+if (!file_exists($config_path)) {
+    die(json_encode([
+        "success" => false,
+        "message" => "설정 파일을 찾을 수 없습니다: " . $config_path
+    ]));
+}
+require_once $config_path;
+
 $debug = [];  // 디버그 로그를 저장할 배열
 
 try {

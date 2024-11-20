@@ -5,7 +5,6 @@ define('DB_USER', 'root');
 define('DB_PASS', '');
 define('UPLOAD_DIR', __DIR__ . '/../uploads/');
 
-// PDO 연결 설정
 function getDBConnection() {
     try {
         $conn = new mysqli(DB_HOST, DB_USER, DB_PASS, DB_NAME);
@@ -20,6 +19,6 @@ function getDBConnection() {
         
     } catch(Exception $e) {
         error_log("DB 연결 오류: " . $e->getMessage());
-        die("데이터베이스 연결 실패: " . $e->getMessage());
+        throw new Exception("데이터베이스 연결 실패: " . $e->getMessage());
     }
-} 
+}

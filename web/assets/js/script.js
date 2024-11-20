@@ -19,7 +19,7 @@ document.getElementById('loginForm').addEventListener('submit', async (event) =>
     
     try {
         console.log('로그인 요청 시작');
-        const response = await fetch('../includes/login.php', {
+        const response = await fetch('/includes/login.php', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'

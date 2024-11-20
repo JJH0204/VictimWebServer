@@ -185,7 +185,7 @@ requireLogin();
             
             const formData = new FormData(this);
             
-            fetch('../includes/upload.php', {
+            fetch('../includes/upload_process.php', {
                 method: 'POST',
                 body: formData
             })

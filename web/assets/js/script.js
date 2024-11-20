@@ -24,13 +24,15 @@ document.getElementById('loginForm').addEventListener('submit', async (e) => {
             body: JSON.stringify(data)
         });
         
-        if (data.success) {
-            showMessage(data.message, false);
+        const responseData = await response.json();
+        
+        if (responseData.success) {
+            showMessage(responseData.message, false);
             setTimeout(() => {
                 window.location.href = './upload.html';
             }, 1000);
         } else {
-            showMessage(data.message, true);
+            showMessage(responseData.message, true);
         }
     } catch (error) {
         showMessage('오류가 발생했습니다. 다시 시도해주세요.', true);

@@ -181,85 +181,38 @@ requireLogin();
             const resultDiv = document.getElementById('uploadResult');
             const resultPre = resultDiv.querySelector('pre');
             
-            // 파일 선택 확인
+            // 파일 선택 및 크기 확인
             if (!fileInput.files || fileInput.files.length === 0) {
                 alert('파일을 선택해주세요.');
                 return;
             }
 
-            // FormData 생성 및 파일 추가
-            const formData = new FormData();
-            formData.append('fileToUpload', fileInput.files[0]);
-
-            // // FormData 내용 확인
-            // console.log('=== FormData 디버깅 ===');
-            // console.log('선택된 파일:', fileInput.files[0]);
-            
-            // // FormData 내용 순회하며 확인
-            // console.log('FormData 내용:');
-            // for (let [key, value] of formData.entries()) {
-            //     console.log(`${key}:`, value instanceof File ? {
-            //         name: value.name,
-            //         size: value.size,
-            //         type: value.type,
-            //         lastModified: new Date(value.lastModified)
-            //     } : value);
-            // }
-
-            // // 파일 객체 상세 정보
-            // if (fileInput.files[0]) {
-            //     const file = fileInput.files[0];
-            //     console.log('파일 상세 정보:', {
-            //         name: file.name,
-            //         size: `${(file.size / 1024).toFixed(2)}KB`,
-            //         type: file.type,
-            //         lastModified: new Date(file.lastModified)
-            //     });
-            // }
+            const maxSize = 20 * 1024 * 1024; // 20MB
+            if (fileInput.files[0].size > maxSize) {
+                alert('파일 크기가 20MB를 초과합니다.');
+                return;
+            }
 
             try {
                 submitBtn.disabled = true;
                 submitBtn.textContent = '업로드 중...';
 
-                // 현재 페이지의 경로를 기준으로 상대 경로 설정
-                const uploadUrl = '../includes/upload_process.php';
-                console.log('업로드 URL:', uploadUrl);
-                console.log('현재 페이지 위치:', window.location.href);
+                const formData = new FormData();
+                formData.append('fileToUpload', fileInput.files[0]);
 
-                const response = await fetch(uploadUrl, {
+                const response = await fetch('../includes/upload_process.php', {
                     method: 'POST',
                     body: formData
-                }).catch(error => {
-                    console.error('Fetch 요청 실패:', error);
-                    throw new Error(`네트워크 요청 실패: ${error.message}`);
                 });
 
-                const text = await response.text();
-                console.log('서버 응답 텍스트:', text);
-
-                let data;
-                try {
-                    data = JSON.parse(text);
-                } catch (e) {
-                    throw new Error(`서버 응답 파싱 실패: ${text}`);
-                }
-
-                let logText = '== 업로드 결과 ==\n';
-                logText += `상태: ${data.success ? '성공' : '실패'}\n`;
-                logText += `메시지: ${data.message}\n`;
+                const data = await response.json();
                 
-                if (data.logs && data.logs.length > 0) {
-                    logText += '\n== 상세 로그 ==\n';
-                    data.logs.forEach(log => {
-                        logText += `${log}\n`;
-                    });
-                }
-                
-                resultPre.textContent = logText;
+                resultPre.textContent = data.success ? 
+                    `업로드 성공: ${data.message}` : 
+                    `업로드 실패: ${data.message}`;
                 resultDiv.style.display = 'block';
 
             } catch (error) {
-                console.error('업로드 에러:', error);
                 resultPre.textContent = `업로드 실패: ${error.message}`;
                 resultDiv.style.display = 'block';
             } finally {
@@ -271,17 +224,17 @@ requireLogin();
         // 파일 선택 이벤트
         document.getElementById('fileToUpload').addEventListener('change', function(e) {
             const submitBtn = document.querySelector('.submit-btn');
-            const resultDiv = document.getElementById('uploadResult');
+            const maxSize = 20 * 1024 * 1024; // 20MB
             
             if (this.files && this.files[0]) {
                 const file = this.files[0];
-                console.log('선택된 파일:', {
-                    name: file.name,
-                    size: file.size,
-                    type: file.type
-                });
+                if (file.size > maxSize) {
+                    alert('파일 크기가 20MB를 초과합니다.');
+                    this.value = '';
+                    submitBtn.textContent = '파일 업로드';
+                    return;
+                }
                 submitBtn.textContent = `'${file.name}' 업로드`;
-                resultDiv.style.display = 'none'; // 이전 결과 숨기기
             } else {
                 submitBtn.textContent = '파일 업로드';
             }

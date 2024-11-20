@@ -21,12 +21,11 @@ document.getElementById('loginForm').addEventListener('submit', async (event) =>
     .then(response => response.json())
     .then(data => {
         if (data.success) {
-            showMessage(data.message, false);
-            setTimeout(() => {
-                window.location.href = './upload.html';
-            }, 1000);
+            sessionStorage.setItem('loggedIn', 'true');
+            sessionStorage.setItem('username', data.username);
+            window.location.href = './upload.html';
         } else {
-            showMessage(data.message, true);
+            document.getElementById('error-message').style.display = 'block';
         }
     })
     .catch(error => {

@@ -1,4 +1,7 @@
 <?php
+// 모든 출력 버퍼링 시작
+ob_start();
+
 require_once 'auth.php';
 requireLogin();
 
@@ -10,6 +13,9 @@ $max_size = 5 * 1024 * 1024; // 5MB
 
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
     try {
+        // 이전 출력 버퍼 제거
+        ob_clean();
+        
         $response = [
             'success' => false,
             'message' => '',
@@ -53,10 +59,16 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         echo json_encode($response);
         
     } catch (Exception $e) {
+        // 이전 출력 버퍼 제거
+        ob_clean();
+        
         http_response_code(400);
         $response['success'] = false;
         $response['message'] = $e->getMessage();
         echo json_encode($response);
     }
 }
+
+// 출력 버퍼 종료 및 전송
+ob_end_flush();
 ?> 

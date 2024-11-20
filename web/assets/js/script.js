@@ -25,6 +25,13 @@ document.getElementById('loginForm').addEventListener('submit', async (event) =>
         
         const data = await response.json();
         
+        // 디버그 로그 출력
+        if (data.debug) {
+            console.log('=== 디버그 로그 ===');
+            data.debug.forEach(log => console.log(log));
+            console.log('================');
+        }
+        
         if (data.success) {
             showMessage(data.message, false);
             setTimeout(() => {

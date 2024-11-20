@@ -5,8 +5,8 @@ ob_start();
 require_once 'auth.php';
 requireLogin();
 
-// 파일 업로드 디렉토리 설정
-define('UPLOAD_DIR', '/var/www/html/share/');
+// 상대 경로로 업로드 디렉토리 설정
+define('UPLOAD_DIR', __DIR__ . '/../../share/');
 
 // 기본 설정
 $max_size = 5 * 1024 * 1024; // 5MB
@@ -58,7 +58,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         }
         $response['logs'][] = "파일 크기 검사 통과: " . number_format($file["size"]/1024/1024, 2) . "MB";
 
-        // 업로드 디렉토리 확인
+        // 업로드 디렉토리 확인 및 생성
         if (!file_exists(UPLOAD_DIR)) {
             if (!mkdir(UPLOAD_DIR, 0755, true)) {
                 throw new Exception("업로드 디렉토리를 생성할 수 없습니다.");
@@ -72,7 +72,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
         // 파일 이동
         if (!move_uploaded_file($file["tmp_name"], $target_file)) {
-            throw new Exception("파일 업로드 실패 - 권한을 확인하세요.");
+            throw new Exception("파일 업로드 실패 - 권한을 확인하세요. (경로: " . $target_file . ")");
         }
         $response['logs'][] = "파일 이동 완료";
 
@@ -92,6 +92,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         http_response_code(400);
         $response['success'] = false;
         $response['message'] = $e->getMessage();
+        $response['logs'][] = "오류 발생: " . $e->getMessage();
     }
 
     // JSON 응답 전송

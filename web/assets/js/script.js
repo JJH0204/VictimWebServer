@@ -31,8 +31,18 @@ document.getElementById('loginForm').addEventListener('submit', async (event) =>
         });
         console.log('서버 응답 수신:', response.status);
         
-        const data = await response.json();
-        console.log('응답 데이터:', data);
+        // 응답 텍스트 먼저 확인
+        const responseText = await response.text();
+        console.log('응답 원본:', responseText);
+        
+        let data;
+        try {
+            data = JSON.parse(responseText);
+            console.log('파싱된 데이터:', data);
+        } catch (parseError) {
+            console.error('JSON 파싱 오류:', parseError);
+            throw new Error('서버 응답을 처리할 수 없습니다.');
+        }
         
         if (data.debug) {
             console.group('=== 서버 디버그 로그 ===');

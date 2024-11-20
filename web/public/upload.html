@@ -1,22 +1,163 @@
-<?php
-require_once '../includes/auth.php';
-requireLogin();
-?>
 <!DOCTYPE html>
 <html lang="ko">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>파일 업로드</title>
-    <link rel="stylesheet" href="../assets/css/style.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Noto Sans KR', sans-serif;
+            background-color: #f5f5f5;
+            line-height: 1.6;
+            color: #333;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        nav {
+            background-color: #2c3e50;
+            padding: 1rem;
+            margin-bottom: 2rem;
+        }
+
+        nav a {
+            color: white;
+            text-decoration: none;
+            padding: 0.5rem 1rem;
+            border-radius: 4px;
+            transition: background-color 0.3s;
+        }
+
+        nav a:hover {
+            background-color: #34495e;
+        }
+
+        .upload-section {
+            background-color: white;
+            padding: 2rem;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        h2 {
+            color: #2c3e50;
+            margin-bottom: 1.5rem;
+            text-align: center;
+        }
+
+        .warning {
+            background-color: #fff3cd;
+            color: #856404;
+            padding: 1rem;
+            border-radius: 4px;
+            margin-bottom: 1.5rem;
+            text-align: center;
+        }
+
+        #uploadForm {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+            align-items: center;
+        }
+
+        .file-input-wrapper {
+            width: 100%;
+            max-width: 400px;
+        }
+
+        #fileToUpload {
+            width: 100%;
+            padding: 0.5rem;
+            border: 2px dashed #2c3e50;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+
+        .submit-btn {
+            background-color: #3498db;
+            color: white;
+            border: none;
+            padding: 0.8rem 2rem;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 1rem;
+            transition: background-color 0.3s;
+        }
+
+        .submit-btn:hover {
+            background-color: #2980b9;
+        }
+
+        .info-section {
+            margin-top: 2rem;
+            padding: 1rem;
+            background-color: #e8f4f8;
+            border-radius: 4px;
+        }
+
+        .info-section h3 {
+            color: #2c3e50;
+            margin-bottom: 0.5rem;
+        }
+
+        .info-section ul {
+            list-style-type: none;
+            padding-left: 1rem;
+        }
+
+        .info-section li {
+            margin-bottom: 0.5rem;
+            color: #666;
+        }
+    </style>
 </head>
 <body>
     <nav>
-        <a href="../includes/logout.php">로그아웃</a>
+        <div class="container">
+            <a href="../includes/logout.php">로그아웃</a>
+        </div>
     </nav>
-    <h2>파일 업로드</h2>
-    <form id="uploadForm" action="../includes/upload.php" method="post" enctype="multipart/form-data">
-        <input type="file" name="fileToUpload" id="fileToUpload">
-        <input type="submit" value="파일 업로드" name="submit">
-    </form>
+
+    <div class="container">
+        <div class="upload-section">
+            <h2>파일 업로드</h2>
+            <form id="uploadForm" action="../includes/upload.php" method="post" enctype="multipart/form-data">
+                <div class="file-input-wrapper">
+                    <input type="file" name="fileToUpload" id="fileToUpload">
+                </div>
+                <button type="submit" class="submit-btn" name="submit">파일 업로드</button>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        // 파일 선택 시 피드백
+        document.getElementById('fileToUpload').addEventListener('change', function(e) {
+            const fileName = e.target.files[0]?.name;
+            if (fileName) {
+                document.querySelector('.submit-btn').textContent = `'${fileName}' 업로드`;
+            } else {
+                document.querySelector('.submit-btn').textContent = '파일 업로드';
+            }
+        });
+
+        // 폼 제출 시 로딩 상태 표시
+        document.getElementById('uploadForm').addEventListener('submit', function() {
+            const submitBtn = document.querySelector('.submit-btn');
+            submitBtn.disabled = true;
+            submitBtn.textContent = '업로드 중...';
+        });
+    </script>
 </body>
 </html> 

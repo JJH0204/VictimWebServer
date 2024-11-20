@@ -1,32 +1,30 @@
 <?php
+// 오류 로깅 설정
 error_reporting(E_ALL);
-ini_set('display_errors', 0);
+ini_set('display_errors', 1);
+ini_set('log_errors', 1);
+ini_set('error_log', __DIR__ . '/error.log');
+
+// 디버깅을 위한 로그 파일 생성
+file_put_contents(__DIR__ . '/debug.log', "로그인 요청 시작: " . date('Y-m-d H:i:s') . "\n", FILE_APPEND);
 
 if (ob_get_level()) ob_end_clean();
 header('Content-Type: application/json; charset=utf-8');
 
-require_once __DIR__ . '/config.php';
-session_start();
-
 try {
-    header("Cache-Control: no-store, no-cache, must-revalidate, max-age=0");
-    header("Cache-Control: post-check=0, pre-check=0", false);
-    header("Pragma: no-cache");
+    require_once __DIR__ . '/config.php';
+    session_start();
     
-    $conn = getDBConnection();
-    $debug_log = ["로그인 시도 - 시작"];
+    // POST 데이터 로깅
+    $raw_data = file_get_contents('php://input');
+    file_put_contents(__DIR__ . '/debug.log', "받은 데이터: " . $raw_data . "\n", FILE_APPEND);
     
-    $json = file_get_contents('php://input');
-    $debug_log[] = "받은 JSON 데이터: " . $json;
-    
-    $data = json_decode($json, true);
+    $data = json_decode($raw_data, true);
     if (json_last_error() !== JSON_ERROR_NONE) {
-        $debug_log[] = "JSON 디코딩 오류: " . json_last_error_msg();
-        throw new Exception("잘못된 요청 형식입니다.");
+        throw new Exception("JSON 파싱 오류: " . json_last_error_msg());
     }
     
     if (!isset($data['username']) || !isset($data['password'])) {
-        $debug_log[] = "필수 필드 누락: username 또는 password";
         throw new Exception("아이디와 비밀번호를 모두 입력해주세요.");
     }
     
@@ -34,11 +32,10 @@ try {
     $pass = $data['password'];
     
     $query = "SELECT * FROM users WHERE username='$user' AND password='$pass'";
-    $debug_log[] = "실행 쿼리: " . $query;
     
+    $conn = getDBConnection();
     $result = $conn->query($query);
     if (!$result) {
-        $debug_log[] = "쿼리 실행 오류: " . $conn->error;
         throw new Exception("데이터베이스 조회 중 오류가 발생했습니다.");
     }
     
@@ -46,29 +43,28 @@ try {
         $user = $result->fetch_assoc();
         $_SESSION['user_id'] = $user['id'];
         $_SESSION['username'] = $user['username'];
-        $debug_log[] = "로그인 성공 - 사용자: " . $user['username'];
         
         echo json_encode([
             "success" => true,
             "message" => "로그인 성공!",
-            "debug" => $debug_log
+            "debug" => ["로그인 성공 - 사용자: " . $user['username']]
         ], JSON_UNESCAPED_UNICODE);
     } else {
-        $debug_log[] = "로그인 실패 - 일치하는 사용자 없음";
         echo json_encode([
             "success" => false,
             "message" => "아이디 또는 비밀번호가 잘못되었습니다.",
-            "debug" => $debug_log
+            "debug" => ["로그인 실패 - 일치하는 사용자 없음"]
         ], JSON_UNESCAPED_UNICODE);
     }
 } catch(Exception $e) {
-    $debug_log[] = "로그인 오류: " . $e->getMessage();
-    $response = [
+    // 오류 로깅
+    error_log("로그인 오류: " . $e->getMessage());
+    file_put_contents(__DIR__ . '/debug.log', "오류 발생: " . $e->getMessage() . "\n", FILE_APPEND);
+    
+    http_response_code(500);
+    echo json_encode([
         "success" => false,
-        "message" => "로그인 처리 중 오류가 발생했습니다: " . $e->getMessage(),
-        "debug" => $debug_log
-    ];
-    echo json_encode($response, JSON_UNESCAPED_UNICODE);
+        "message" => "서버 오류가 발생했습니다: " . $e->getMessage()
+    ], JSON_UNESCAPED_UNICODE);
 }
-exit();
 ?> 

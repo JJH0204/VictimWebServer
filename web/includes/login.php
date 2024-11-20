@@ -1,4 +1,7 @@
 <?php
+error_reporting(E_ALL);
+ini_set('display_errors', 0);
+
 if (ob_get_level()) ob_end_clean();
 header('Content-Type: application/json; charset=utf-8');
 

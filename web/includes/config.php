@@ -1,15 +1,11 @@
 <?php
-define('DB_HOST', '127.0.0.1');
-define('DB_NAME', 'vulnerable_db');
-define('DB_USER', 'root');
-define('DB_PASS', '');
 define('UPLOAD_DIR', __DIR__ . '/../uploads/');
 
 function getDBConnection() {
-    $host = 'DB_HOST';  // 데이터베이스 호스트
-    $dbname = 'DB_NAME';  // 데이터베이스 이름
-    $username = 'DB_USER';  // 데이터베이스 사용자
-    $password = 'DB_PASS';  // 데이터베이스 비밀번호
+    $host = '127.0.0.1';  // 데이터베이스 호스트
+    $dbname = 'vulnerable_db';  // 데이터베이스 이름
+    $username = 'root';  // 데이터베이스 사용자
+    $password = '';  // 데이터베이스 비밀번호
     
     try {
         $conn = new PDO("mysql:host=$host;dbname=$dbname", $username, $password);

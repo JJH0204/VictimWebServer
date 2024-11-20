@@ -6,7 +6,7 @@ require_once 'auth.php';
 requireLogin();
 
 // 상대 경로로 업로드 디렉토리 설정
-define('UPLOAD_DIR', __DIR__ . '/../../share/');
+define('UPLOAD_DIR', __DIR__ . '/share/');
 
 // 기본 설정
 $max_size = 5 * 1024 * 1024; // 5MB

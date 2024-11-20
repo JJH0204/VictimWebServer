@@ -19,7 +19,7 @@ document.getElementById('loginForm').addEventListener('submit', async (e) => {
         showMessage(data.message);
         
         if (data.success) {
-            window.location.href = '/dashboard.php';
+            window.location.href = '/public/upload.html';
         }
     } catch (error) {
         showMessage('오류가 발생했습니다. 다시 시도해주세요.');

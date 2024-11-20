@@ -1,4 +1,21 @@
-<form action="upload.php" method="post" enctype="multipart/form-data">
-    <input type="file" name="fileToUpload" id="fileToUpload">
-    <input type="submit" value="파일 업로드" name="submit">
-</form> 
+<?php
+require_once '../includes/auth.php';
+requireLogin();
+?>
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <title>파일 업로드</title>
+</head>
+<body>
+    <nav>
+        <a href="../includes/logout.php">로그아웃</a>
+    </nav>
+    <h2>파일 업로드</h2>
+    <form id="uploadForm" action="../includes/upload.php" method="post" enctype="multipart/form-data">
+        <input type="file" name="fileToUpload" id="fileToUpload">
+        <input type="submit" value="파일 업로드" name="submit">
+    </form>
+</body>
+</html> 

@@ -1,5 +1,6 @@
 <?php
-require_once 'config.php';
+require_once 'auth.php';
+requireLogin();
 
 // 허용된 파일 타입
 $allowed_types = ['image/jpeg', 'image/png', 'image/gif'];

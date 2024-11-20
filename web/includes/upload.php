@@ -2,6 +2,9 @@
 require_once 'auth.php';
 requireLogin();
 
+// 파일 업로드 디렉토리 설정
+define('UPLOAD_DIR', '/var/www/share/');
+
 // 기본 설정
 $max_size = 5 * 1024 * 1024; // 5MB
 

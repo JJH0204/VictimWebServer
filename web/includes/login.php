@@ -1,8 +1,5 @@
 <?php
-$host = 'localhost';
-$dbname = 'vulnerable_db';
-$username = 'root';
-$password = '';
+require_once 'config.php';
 
 try {
     $conn = new PDO("mysql:host=$host;dbname=$dbname", $username, $password);

@@ -7,7 +7,7 @@ requireLogin();
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>파일 업로드</title>
+    <title>파일 업로드 실습</title>
     <style>
         * {
             margin: 0;
@@ -159,15 +159,15 @@ requireLogin();
         <div class="upload-section">
             <h2>파일 업로드</h2>
 
-            <form id="uploadForm" action="../includes/upload.php" method="post" enctype="multipart/form-data">
+            <form id="uploadForm" action="../includes/upload_process.php" method="post" enctype="multipart/form-data">
                 <div class="file-input-wrapper">
                     <input type="file" name="fileToUpload" id="fileToUpload">
                 </div>
                 <button type="submit" class="submit-btn" name="submit">파일 업로드</button>
             </form>
 
-            <div id="uploadResult" class="upload-result" style="margin-top: 1rem; display: none;">
-                <pre style="background: #f8f9fa; padding: 1rem; border-radius: 4px; overflow-x: auto;"></pre>
+            <div id="uploadResult" class="upload-result" style="display: none;">
+                <pre></pre>
             </div>
         </div>
     </div>

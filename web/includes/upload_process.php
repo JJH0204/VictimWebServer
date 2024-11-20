@@ -5,11 +5,11 @@ ob_start();
 require_once 'auth.php';
 requireLogin();
 
-// 상대 경로로 업로드 디렉토리 설정
-define('UPLOAD_DIR', __DIR__ . '/share/');
+// 상대 경로로 업로드 디렉토리 설정 (수정)
+define('UPLOAD_DIR', '/var/www/html/service/share/');
 
-// 기본 설정
-$max_size = 5 * 1024 * 1024; // 5MB
+// 기본 설정 (PHP 설정에 맞춤)
+$max_size = 2 * 1024 * 1024; // 2MB로 수정
 
 // 디버깅을 위한 에러 로깅 활성화
 ini_set('display_errors', 1);
@@ -27,6 +27,15 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             'filepath' => ''
         ];
 
+        // 업로드 디렉토리 확인 및 생성 (권한 수정)
+        if (!file_exists(UPLOAD_DIR)) {
+            if (!mkdir(UPLOAD_DIR, 0777, true)) {
+                throw new Exception("업로드 디렉토리를 생성할 수 없습니다.");
+            }
+            chmod(UPLOAD_DIR, 0777); // 임시로 모든 권한 부여
+            $response['logs'][] = "업로드 디렉토리 생성됨: " . UPLOAD_DIR;
+        }
+
         // 파일 업로드 확인
         if (!isset($_FILES["fileToUpload"])) {
             throw new Exception("파일이 선택되지 않았습니다.");
@@ -37,7 +46,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         // 업로드 에러 확인
         if ($file['error'] !== UPLOAD_ERR_OK) {
             $upload_errors = [
-                UPLOAD_ERR_INI_SIZE => '파일이 PHP의 upload_max_filesize를 초과했습니다.',
+                UPLOAD_ERR_INI_SIZE => '파일이 PHP의 upload_max_filesize(2MB)를 초과했습니다.',
                 UPLOAD_ERR_FORM_SIZE => '파일이 HTML 폼에서 지정한 MAX_FILE_SIZE를 초과했습니다.',
                 UPLOAD_ERR_PARTIAL => '파일이 일부만 업로드되었습니다.',
                 UPLOAD_ERR_NO_FILE => '파일이 업로드되지 않았습니다.',
@@ -58,17 +67,9 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         
         // 파일 크기 검사
         if ($file["size"] > $max_size) {
-            throw new Exception("파일 크기가 너무 큽니다. (제한: " . ($max_size/1024/1024) . "MB)");
+            throw new Exception("파일 크기가 너무 큽니다. (제한: 2MB)");
         }
         $response['logs'][] = "파일 크기 검사 통과: " . number_format($file["size"]/1024/1024, 2) . "MB";
-
-        // 업로드 디렉토리 확인 및 생성
-        if (!file_exists(UPLOAD_DIR)) {
-            if (!mkdir(UPLOAD_DIR, 0755, true)) {
-                throw new Exception("업로드 디렉토리를 생성할 수 없습니다.");
-            }
-            $response['logs'][] = "업로드 디렉토리 생성됨: " . UPLOAD_DIR;
-        }
 
         // 파일명 처리 (취약점 의도적 포함)
         $target_file = UPLOAD_DIR . basename($file["name"]);
@@ -76,21 +77,17 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
         // 파일 이동
         if (!move_uploaded_file($file["tmp_name"], $target_file)) {
-            throw new Exception("파일 업로드 실패 - 권한을 확인하세요. (경로: " . $target_file . ")");
+            $response['logs'][] = "임시 파일 경로: " . $file["tmp_name"];
+            $response['logs'][] = "대상 파일 경로: " . $target_file;
+            $response['logs'][] = "현재 PHP 실행 사용자: " . exec('whoami');
+            $response['logs'][] = "디렉토리 권한: " . substr(sprintf('%o', fileperms(UPLOAD_DIR)), -4);
+            throw new Exception("파일 업로드 실패 - 권한을 확인하세요.");
         }
         $response['logs'][] = "파일 이동 완료";
 
         // 파일 권한 설정
-        chmod($target_file, 0644);
+        chmod($target_file, 0666); // 읽기/쓰기 권한 부여
         $response['logs'][] = "파일 권한 설정 완료";
-
-        // 업로드 디렉토리 권한 확인
-        $response['logs'][] = "업로드 디렉토리 권한: " . substr(sprintf('%o', fileperms(UPLOAD_DIR)), -4);
-        $response['logs'][] = "PHP 프로세스 사용자: " . exec('whoami');
-
-        // 파일 업로드 제한 확인
-        $response['logs'][] = "upload_max_filesize: " . ini_get('upload_max_filesize');
-        $response['logs'][] = "post_max_size: " . ini_get('post_max_size');
 
         // 성공 응답
         $response['success'] = true;

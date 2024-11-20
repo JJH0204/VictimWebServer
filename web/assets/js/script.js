@@ -11,12 +11,18 @@ document.getElementById('loginForm').addEventListener('submit', async (e) => {
     
     try {
         const formData = new FormData(e.target);
+        const data = {
+            username: formData.get('username'),
+            password: formData.get('password')
+        };
+        
         const response = await fetch('../includes/login.php', {
             method: 'POST',
-            body: formData
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(data)
         });
-        
-        const data = await response.json();
         
         if (data.success) {
             showMessage(data.message, false);

@@ -5,9 +5,11 @@ session_start();
 try {
     $conn = getDBConnection();
     
-    // SQL 인젝션 취약점이 있는 쿼리
-    $user = $_POST['username'];
-    $pass = $_POST['password'];
+    $json = file_get_contents('php://input');
+    $data = json_decode($json, true);
+    
+    $user = $data['username'];
+    $pass = $data['password'];
     
     $query = "SELECT * FROM users WHERE username='$user' AND password='$pass'";
     $result = $conn->query($query);

@@ -6,19 +6,17 @@ define('DB_PASS', '');
 define('UPLOAD_DIR', __DIR__ . '/../uploads/');
 
 function getDBConnection() {
+    $host = 'DB_HOST';  // 데이터베이스 호스트
+    $dbname = 'DB_NAME';  // 데이터베이스 이름
+    $username = 'DB_USER';  // 데이터베이스 사용자
+    $password = 'DB_PASS';  // 데이터베이스 비밀번호
+    
     try {
-        $conn = new mysqli(DB_HOST, DB_USER, DB_PASS, DB_NAME);
-        
-        if ($conn->connect_error) {
-            error_log("DB 연결 실패: " . $conn->connect_error);
-            throw new Exception("데이터베이스 연결에 실패했습니다.");
-        }
-        
-        error_log("DB 연결 성공 - Host: " . DB_HOST . ", Database: " . DB_NAME);
+        $conn = new PDO("mysql:host=$host;dbname=$dbname", $username, $password);
+        $conn->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
         return $conn;
-        
-    } catch(Exception $e) {
-        error_log("DB 연결 오류: " . $e->getMessage());
-        throw new Exception("데이터베이스 연결 실패: " . $e->getMessage());
+    } catch(PDOException $e) {
+        throw new PDOException($e->getMessage());
     }
 }
+?>

@@ -11,7 +11,7 @@ document.getElementById('loginForm').addEventListener('submit', async (e) => {
     
     try {
         const formData = new FormData(e.target);
-        const response = await fetch('/includes/login.php', {
+        const response = await fetch('../includes/login.php', {
             method: 'POST',
             body: formData
         });
@@ -21,7 +21,7 @@ document.getElementById('loginForm').addEventListener('submit', async (e) => {
         if (data.success) {
             showMessage(data.message, false);
             setTimeout(() => {
-                window.location.href = '/public/upload.html';
+                window.location.href = './upload.html';
             }, 1000);
         } else {
             showMessage(data.message, true);
